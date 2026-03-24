@@ -16,9 +16,12 @@ para los usuarios.
 Un sistema basado en redes neuronales puede analizar el contenido de los
 correos y aprender a identificar patrones que permitan clasificarlos automáticamente.
 
-## Impacto del proyecto:
+### Impacto del proyecto:
 
-Tecnológico: mejora los sistemas automáticos de filtrado de correo.
+- Tecnológico: mejora los sistemas automáticos de filtrado de correo.
+- Social
+- Economico
+- etc
 
 ## Introducción
 
