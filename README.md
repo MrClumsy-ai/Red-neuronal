@@ -1,4 +1,4 @@
-# Nombre del proyecto: Clasificador de correos
+# Clasificador de correos
 
 ## Objetivo
 
