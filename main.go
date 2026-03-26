@@ -62,8 +62,8 @@ func newNeuralNetwork(inputSize int, hiddenSizes []int, outputSize int, learning
 	}
 }
 
-func (nn *NeuralNetwork) Forward(input []float64) []float64 {
-	current := input
+func (nn *NeuralNetwork) Forward(data *TrainingData) []float64 {
+	current := data.input
 	for _, layer := range nn.layers {
 		next := make([]float64, layer.size)
 		for i := range layer.size {
@@ -78,9 +78,9 @@ func (nn *NeuralNetwork) Forward(input []float64) []float64 {
 	return current
 }
 
-func (nn *NeuralNetwork) Backward(input, target []float64) {
+func (nn *NeuralNetwork) Backward(data *TrainingData) {
 	activations := make([][]float64, len(nn.layers)+1)
-	activations[0] = input
+	activations[0] = data.input
 
 	for i, layer := range nn.layers {
 		current := activations[i]
@@ -98,7 +98,7 @@ func (nn *NeuralNetwork) Backward(input, target []float64) {
 	output := activations[len(activations)-1]
 	errors[len(errors)-1] = make([]float64, len(output))
 	for i := range output {
-		errors[len(errors)-1][i] = (target[i] - output[i]) * sigmoidDerivative(output[i])
+		errors[len(errors)-1][i] = (data.target[i] - output[i]) * sigmoidDerivative(output[i])
 	}
 	for i := len(nn.layers) - 2; i >= 0; i-- {
 		errors[i] = make([]float64, len(activations[i+1]))
@@ -120,30 +120,42 @@ func (nn *NeuralNetwork) Backward(input, target []float64) {
 	}
 }
 
-func (nn *NeuralNetwork) Train(input, target []float64) {
-	nn.Backward(input, target)
+func (nn *NeuralNetwork) Train(data *TrainingData) {
+	nn.Backward(data)
 }
 
-func (nn *NeuralNetwork) Loss(prediction, target []float64) float64 {
+func (nn *NeuralNetwork) Loss(prediction []float64, data *TrainingData) float64 {
 	loss := 0.0
 	for i := range prediction {
-		diff := prediction[i] - target[i]
+		diff := prediction[i] - data.target[i]
 		loss += diff * diff
 	}
 	return loss / float64(len(prediction))
 }
 
+type TrainingData = struct {
+	input  []float64
+	target []float64
+}
+
+func newTrainingData(input, target []float64) *TrainingData {
+	return &TrainingData{
+		input,
+		target,
+	}
+}
+
 func main() {
-	// rand.Seed(time.Now().UnixNano())
-	nn := newNeuralNetwork(2, []int{3}, 1, 0.5)
-	trainingData := []struct {
-		input  []float64
-		target []float64
-	}{
-		{[]float64{0, 0}, []float64{0, 0}},
-		{[]float64{0, 1}, []float64{1, 0}},
-		{[]float64{1, 0}, []float64{1, 0}},
-		{[]float64{1, 1}, []float64{0, 0}},
+	const inputSize = 2
+	hiddenSizes := []int{3}
+	const outputSize = 1
+	const learningRate = 0.5
+	neuralNetwork := newNeuralNetwork(inputSize, hiddenSizes, outputSize, learningRate)
+	trainingData := []TrainingData{
+		*newTrainingData([]float64{0, 0}, []float64{0}),
+		*newTrainingData([]float64{0, 1}, []float64{1}),
+		*newTrainingData([]float64{1, 0}, []float64{1}),
+		*newTrainingData([]float64{1, 1}, []float64{0}),
 	}
 
 	fmt.Println("training nn...")
@@ -152,9 +164,9 @@ func main() {
 	for epoch := range epochs {
 		totalLoss := 0.0
 		for _, data := range trainingData {
-			nn.Train(data.input, data.target)
-			prediction := nn.Forward(data.input)
-			totalLoss += nn.Loss(prediction, data.target)
+			neuralNetwork.Train(&data)
+			prediction := neuralNetwork.Forward(&data)
+			totalLoss += neuralNetwork.Loss(prediction, &data)
 		}
 		if epoch%1000 == 0 {
 			fmt.Printf("epoch %d, average loss: %.6f\n", epoch, totalLoss/float64(len(trainingData)))
@@ -162,7 +174,7 @@ func main() {
 	}
 	fmt.Println("\ntesting trained network:")
 	for _, data := range trainingData {
-		prediction := nn.Forward(data.input)
+		prediction := neuralNetwork.Forward(&data)
 		fmt.Printf("input: %v, expected: %v, prediction: %.4f\n", data.input, data.target, prediction[0])
 	}
 }
