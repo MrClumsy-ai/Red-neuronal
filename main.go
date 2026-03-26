@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"time"
 )
 
 type Layer struct {
@@ -135,7 +134,7 @@ func (nn *NeuralNetwork) Loss(prediction, target []float64) float64 {
 }
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
+	// rand.Seed(time.Now().UnixNano())
 	nn := newNeuralNetwork(2, []int{3}, 1, 0.5)
 	trainingData := []struct {
 		input  []float64
