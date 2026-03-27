@@ -1,3 +1,3 @@
-module MrClumsy227/Red-neuronal
+module github.com/MrClumsy-ai/Red-neuronal
 
 go 1.26.1
